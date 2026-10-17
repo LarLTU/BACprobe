@@ -5,7 +5,7 @@ It must be easy for a brand-new BMS tech and fast for an experienced one.
 Full research and plan: https://claude.ai/code/artifact/9a36dbdb-bbd9-4b84-9254-080340b72c75
 
 ## Decisions (settled — don't relitigate)
-- Community tool, MIT license, published at https://github.com/lsink/BACprobe. No BTL listing.
+- Community tool, MIT license, published at https://github.com/LarLTU/BACprobe. No BTL listing.
 - Windows only. C# on .NET 10, WPF UI (Fluent theme via `ThemeMode`; suppress WPF0001 if needed).
 - Solo developer (Larry, a BAS/BACnet field tech). Keep each phase small and shippable.
 - Standard BACnet objects only. Proprietary objects/properties show as "vendor-specific" with raw values.

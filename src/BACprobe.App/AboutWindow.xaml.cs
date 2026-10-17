@@ -11,7 +11,7 @@ namespace BACprobe.App;
 /// <summary>Help > About: version, runtime, libraries, licence and where BACprobe keeps its files.</summary>
 public partial class AboutWindow : Window
 {
-    private const string GitHubUrl = "https://github.com/lsink/BACprobe";
+    private const string GitHubUrl = "https://github.com/LarLTU/BACprobe";
 
     private readonly List<(string Label, string Value)> _rows;
 
