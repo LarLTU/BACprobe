@@ -14,6 +14,7 @@ internal static class ThemeManager
     private static ResourceDictionary? _colours;
     private static ThemeChoice _choice = ThemeChoice.System;
     private static bool _listening;
+    private static System.Windows.Threading.DispatcherTimer? _settle;
 
     public static ThemeChoice Choice => _choice;
 
@@ -30,6 +31,13 @@ internal static class ThemeManager
         _colours = new ResourceDictionary { Source = new Uri($"pack://application:,,,/Themes/{(light ? "Light" : "Dark")}.xaml") };
         merged.Add(_colours); // last, so our keys (including the DataGrid selection colours) win over Fluent's
         RecolourAccent(app);
+        // After a switch while running, Fluent builds some brushes (toggle buttons, checked boxes) only when they are first drawn,
+        // which is after the line above, so keep recolouring for a couple of seconds. Cheap, and it stops by itself.
+        _settle?.Stop();
+        var ticks = 0;
+        _settle = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(200) };
+        _settle.Tick += (_, _) => { RecolourAccent(app); if (++ticks >= 10) _settle?.Stop(); };
+        _settle.Start();
 
         if (!_listening)
         {
@@ -56,20 +64,25 @@ internal static class ThemeManager
     /// </summary>
     private static void RecolourAccent(Application app)
     {
-        try
+        IReadOnlyList<string> names;
+        try { names = _fluentNames ??= FluentResourceNames(); }
+        catch (Exception) { return; } // the accent colour is only cosmetic
+        var (blueHue, blueSat, blueLight) = ToHsl(IconBlue);
+        foreach (var name in names)
         {
-            _fluentNames ??= FluentResourceNames();
-            var (blueHue, blueSat, blueLight) = ToHsl(IconBlue);
-            foreach (var name in _fluentNames)
+            if (app.TryFindResource(name) is not SolidColorBrush { IsFrozen: false } brush) continue;
+            var (h, s, l) = ToHsl(brush.Color);
+            if (s < 0.2 || h < 250 || h > 300) continue; // only the purples; Fluent's greys and reds are left alone
+            // 0.427 is the lightness of Fluent's usual accent fill (#654199 for a #744DA9 accent): it lands exactly on IconBlue.
+            var blue = FromHsl(blueHue, blueSat, Math.Clamp(l - 0.427 + blueLight, 0, 1), brush.Color.A);
+            try { brush.Color = blue; }
+            catch (Exception)
             {
-                if (app.TryFindResource(name) is not SolidColorBrush { IsFrozen: false } brush) continue;
-                var (h, s, l) = ToHsl(brush.Color);
-                if (s < 0.2 || h < 250 || h > 300) continue; // only the purples; Fluent's greys and reds are left alone
-                // 0.427 is the lightness of Fluent's usual accent fill (#654199 for a #744DA9 accent): it lands exactly on IconBlue.
-                brush.Color = FromHsl(blueHue, blueSat, Math.Clamp(l - 0.427 + blueLight, 0, 1), brush.Color.A);
+                // After a theme switch some brushes still take their colour from another resource and refuse a new one:
+                // put a plain brush under the same key instead, which the controls pick up the same way.
+                app.Resources[name] = new SolidColorBrush(blue);
             }
         }
-        catch (Exception) { /* the Windows accent colour is only cosmetic */ }
     }
 
     private static List<string> FluentResourceNames()
