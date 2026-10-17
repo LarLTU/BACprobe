@@ -90,6 +90,8 @@ public sealed class PromptViewModel(PromptContent content)
     public Visibility FactsVisibility => content.Facts.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
     public Visibility WarningVisibility => content.Warning is null ? Visibility.Collapsed : Visibility.Visible;
     public Visibility TypeVisibility => content.TypeToConfirm is null ? Visibility.Collapsed : Visibility.Visible;
-    public string TypePrompt => $"To go ahead, type the device number: {content.TypeToConfirm}";
+    public string TypePrompt => content.TypeToConfirm is { Length: > 0 } t && t.All(char.IsDigit)
+        ? $"To go ahead, type the device number: {t}"
+        : $"To go ahead, type {content.TypeToConfirm}";
     public Visibility PasswordVisibility => content.AskPassword ? Visibility.Visible : Visibility.Collapsed;
 }

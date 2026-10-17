@@ -173,6 +173,7 @@ public sealed partial class MainViewModel
         _svc?.Dispose();
         _svc = null;
         _writer = null;
+        SetMstp(null);
         ResetBrowsing();
 
         Notes.Load(job.AllNotes);
