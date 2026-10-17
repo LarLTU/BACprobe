@@ -22,16 +22,4 @@
   <SolidColorBrush x:Key="ListBoxItemSelectedBackgroundPressedThemeBrush" Color="#A9D0EE" />
   <SolidColorBrush x:Key="ListBoxItemSelectedForegroundThemeBrush" Color="#000000" />
   <Thickness x:Key="ListBoxItemPadding">10,6</Thickness>
-  <!-- Accent: the app icon's blue instead of the Windows accent colour -->
-  <Color x:Key="SystemAccentColor">#0F6CBD</Color>
-  <Color x:Key="SystemAccentColorLight1">#2886DE</Color>
-  <Color x:Key="SystemAccentColorLight2">#479EF5</Color>
-  <Color x:Key="SystemAccentColorLight3">#62ABF5</Color>
-  <Color x:Key="SystemAccentColorDark1">#115EA3</Color>
-  <Color x:Key="SystemAccentColorDark2">#0F548C</Color>
-  <Color x:Key="SystemAccentColorDark3">#0C3B5E</Color>
-  <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#0F6CBD" />
-  <SolidColorBrush x:Key="AccentFillColorSecondaryBrush" Color="#115EA3" />
-  <SolidColorBrush x:Key="AccentFillColorTertiaryBrush" Color="#0C3B5E" />
-  <SolidColorBrush x:Key="AccentTextFillColorPrimaryBrush" Color="#0F6CBD" />
 </ResourceDictionary>
