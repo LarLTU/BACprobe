@@ -209,6 +209,12 @@ public partial class MainWindow : Window
             vm.ShowCompare = compare => new CompareWindow(compare) { Owner = this }.Show();
             vm.ShowAlarms = alarms => new AlarmsWindow(alarms) { Owner = this }.Show();
             vm.ShowMstp = mstp => new MstpWindow(mstp) { Owner = this }.Show();
+            vm.ShowMstpConnect = connect =>
+            {
+                var window = new MstpConnectWindow(connect) { Owner = this };
+                window.ShowDialog();
+                return window.Result;
+            };
             vm.PickTrendFile = suggested =>
                 TrendWindow.PickFile(FileDialogs.ActiveOwner(this), suggested);
             // Trend and alarm windows read through the connection that opened them: close them when it is replaced.

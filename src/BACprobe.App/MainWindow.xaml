@@ -104,7 +104,9 @@
       <MenuItem Header="_Tools">
         <MenuItem Header="_Compare devices..." Command="{Binding OpenCompareCommand}" />
         <MenuItem Header="Check _BBMD..." Click="OnCheckBbmd" />
-        <MenuItem Header="_MS/TP monitor..." Command="{Binding OpenMstpCommand}" />
+        <MenuItem Header="Connect to _MS/TP trunk..." Command="{Binding ConnectMstpCommand}" />
+        <MenuItem Header="_Leave MS/TP trunk" Command="{Binding LeaveMstpCommand}" />
+        <MenuItem Header="MS/TP _monitor (listen only)..." Command="{Binding OpenMstpCommand}" />
         <Separator />
         <MenuItem Header="_Network check" Click="OnNetworkCheck" IsEnabled="{Binding HasNetworkCheck}" />
         <MenuItem Header="_Re-check this adapter" Command="{Binding RunPreflightCommand}" />
@@ -154,7 +156,7 @@
 
         <Button DockPanel.Dock="Left" Content="Scan" Padding="22,5" Margin="14,0,0,0" Command="{Binding ScanCommand}"
                 Style="{DynamicResource AccentButtonStyle}" AutomationProperties.Name="Scan"
-                ToolTip="Find the BACnet devices on this network (F5)." />
+                ToolTip="Find the BACnet devices on this network, or on the MS/TP trunk you joined (F5)." />
         <Grid DockPanel.Dock="Left" Margin="6,0,0,0">
           <Button x:Name="ScanOptionsButton" Click="OnOpenPopup" Tag="ScanOptionsPopup" Content="Scan options ▾" Padding="10,5" AutomationProperties.Name="Scan options"
                         IsHitTestVisible="{Binding IsOpen, ElementName=ScanOptionsPopup, Converter={StaticResource Not}}"
@@ -200,6 +202,9 @@
             </Border>
           </Popup>
         </Grid>
+
+        <Button DockPanel.Dock="Left" Content="MS/TP..." Padding="10,5" Margin="6,0,0,0" Command="{Binding ConnectMstpCommand}" AutomationProperties.Name="Connect to MS/TP"
+                ToolTip="Work on an MS/TP trunk through a USB-RS485 adapter instead of BACnet/IP. It listens first, and only joins after you confirm." />
 
         <Border DockPanel.Dock="Left" Width="1" Margin="14,4" Background="{DynamicResource PanelBorderBrush}" />
         <Button DockPanel.Dock="Left" Content="Find..." Padding="12,5" Command="{Binding OpenFindCommand}" AutomationProperties.Name="Find point"
@@ -263,6 +268,10 @@
         <ToggleButton x:Name="WriteLogToggle" DockPanel.Dock="Right" Content="Write log" Padding="10,3" Margin="12,0,0,0"
                       ToolTip="Every write, release and acknowledgement this session (also saved to %LOCALAPPDATA%\BACprobe\write-log.txt)." />
         <TextBlock DockPanel.Dock="Right" Text="{Binding OverrideSummary}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="16,0,0,0" />
+        <TextBlock DockPanel.Dock="Right" Text="{Binding MstpConnectionText}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="16,0,0,0"
+                   Foreground="{DynamicResource InfoBrush}" AutomationProperties.Name="MS/TP connection"
+                   Visibility="{Binding IsMstpConnected, Converter={StaticResource BoolToVis}}"
+                   ToolTip="BACprobe is a master on this trunk. Tools > Leave MS/TP trunk drops off it." />
         <TextBlock Text="{Binding Status}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip="{Binding Status}" />
       </DockPanel>
     </Border>

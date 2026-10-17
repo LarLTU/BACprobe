@@ -108,11 +108,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private bool _preflightPassed;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(ScanCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ScanCommand), nameof(ConnectMstpCommand))]
     private bool _isScanning;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(ScanCommand), nameof(ExportSelectedCommand), nameof(ExportAllCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ScanCommand), nameof(ConnectMstpCommand), nameof(ExportSelectedCommand), nameof(ExportAllCommand))]
     private bool _isExporting;
 
     [ObservableProperty] private PriorityChoice _selectedPriority = PriorityChoice.Default;
@@ -279,7 +279,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Status = PreflightPassed ? "Ready. Click Scan to find devices." : "Fix the red items in the pre-flight list, then click Re-check.";
     }
 
-    private bool CanScan() => SelectedAdapter is not null && PreflightPassed && !IsScanning && !IsExporting;
+    // Connected to an MS/TP trunk, Scan asks that trunk again, so it needs no IP adapter.
+    private bool CanScan() => (IsMstpConnected || (SelectedAdapter is not null && PreflightPassed)) && !IsScanning && !IsExporting;
 
     [RelayCommand(CanExecute = nameof(CanScan))]
     private async Task ScanAsync()
@@ -292,6 +293,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 Status = "Instance range needs two whole numbers, low then high (or leave both empty).";
                 return;
             }
+        }
+
+        if (IsMstpConnected)
+        {
+            await RescanMstpAsync(low, high);
+            return;
         }
 
         BbmdTarget? bbmd = null;
@@ -344,20 +351,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                       "or devices on another subnet behind a BBMD. Next step: try another adapter or allow BACprobe through Windows Firewall.";
                 return;
             }
-            // Show the devices now and fill in names as each one answers: one slow or unreachable device must not hold up the list.
-            var rows = new Dictionary<DiscoveredDevice, DeviceRow>();
-            foreach (var d in found) Devices.Add(rows[d] = new DeviceRow(d));
-            ExportAllCommand.NotifyCanExecuteChanged();
-            var detailed = 0;
-            Status = $"{found.Count} device(s) found. Reading details (you can select one already)...";
-            await svc.EnrichAsync(found, progress: new Progress<DiscoveredDevice>(d =>
-            {
-                rows[d].Refresh();
-                if (++detailed < found.Count) Status = $"{found.Count} device(s) found. Read details of {detailed}...";
-            }));
-            ShowNetworkCheck(svc.CheckNetwork(), found, svc.BuildNetworkMap(found, scanWasFiltered: low >= 0));
-            ExportAllCommand.NotifyCanExecuteChanged();
-            Status = $"{found.Count} device(s) found. Select one to see its objects.";
+            await ShowFoundDevicesAsync(svc, found, scanWasFiltered: low >= 0);
         }
         catch (Exception ex)
         {
@@ -369,6 +363,25 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             IsScanning = false;
             ExportAllCommand.NotifyCanExecuteChanged();
         }
+    }
+
+    /// <summary>List the devices that answered, then fill in their names and run the network check. Shared by IP scans and MS/TP trunks.</summary>
+    private async Task ShowFoundDevicesAsync(DiscoveryService svc, IReadOnlyList<DiscoveredDevice> found, bool scanWasFiltered)
+    {
+        // Show the devices now and fill in names as each one answers: one slow or unreachable device must not hold up the list.
+        var rows = new Dictionary<DiscoveredDevice, DeviceRow>();
+        foreach (var d in found) Devices.Add(rows[d] = new DeviceRow(d));
+        ExportAllCommand.NotifyCanExecuteChanged();
+        var detailed = 0;
+        Status = $"{found.Count} device(s) found. Reading details (you can select one already)...";
+        await svc.EnrichAsync(found, progress: new Progress<DiscoveredDevice>(d =>
+        {
+            rows[d].Refresh();
+            if (++detailed < found.Count) Status = $"{found.Count} device(s) found. Read details of {detailed}...";
+        }));
+        ShowNetworkCheck(svc.CheckNetwork(), found, svc.BuildNetworkMap(found, scanWasFiltered));
+        ExportAllCommand.NotifyCanExecuteChanged();
+        Status = $"{found.Count} device(s) found. Select one to see its objects.";
     }
 
     private void ResetBrowsing()
