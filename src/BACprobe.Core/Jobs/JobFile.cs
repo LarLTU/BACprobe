@@ -104,7 +104,7 @@ public static class JobFile
                                            "  Next step:    pick a file saved by BACprobe (.bacprobe).");
             if (version > SchemaVersion)
                 throw new JobFileException($"That job file was saved by a newer BACprobe (file format {version}, this version reads up to {SchemaVersion}).\n" +
-                                           "  Next step: update BACprobe from https://github.com/lsink/BACprobe, then open it again.");
+                                           "  Next step: update BACprobe from https://github.com/LarLTU/BACprobe, then open it again.");
 
             var info = new JobInfo(
                 meta.GetValueOrDefault("name", ""), meta.GetValueOrDefault("notes", ""),
